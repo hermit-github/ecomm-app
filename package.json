@@ -4,21 +4,35 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hermit-github/ecomm-app.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "H3RMIT",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/hermit-github/ecomm-app/issues"
   },
   "homepage": "https://github.com/hermit-github/ecomm-app#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.30.0",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.0.1",
     "express": "^4.18.1",
-    "mongoose": "^6.4.4"
+    "express-fileupload": "^1.4.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.4.4",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.7.7",
+    "razorpay": "^2.8.2",
+    "stripe": "^9.13.0",
+    "swagger-ui-express": "^4.5.0",
+    "validator": "^13.7.0",
+    "yamljs": "^0.3.0"
   }
 }
