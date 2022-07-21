@@ -25,7 +25,7 @@ app.use(morgan('tiny'))
 
 // import all routes
 const home = require('./routes/home');
-const { json, urlencoded } = require('express');
+
 
 // router middleware
 app.use('/api/v1',home)
