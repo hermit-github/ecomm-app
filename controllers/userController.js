@@ -62,7 +62,7 @@ exports.login = BigPromise( async (req,res,next) => {
   }
 
   // check if password sent by user is correct
-  const isCorrectPassword = user.isValidPassword(password);
+  const isCorrectPassword = await user.isValidPassword(password);
   
   // if password sent by user in incorrect
   if(!isCorrectPassword){
@@ -161,4 +161,22 @@ exports.getLoggedInUserDetails = BigPromise(async (req,res,next) => {
     success:true,
     user
   })
+})
+
+exports.changePassword = BigPromise(async (req,res,next) => {
+  const userId = req.user.id;
+
+  const user = await User.findById(userId).select("+password");
+
+  const isCorrectOldPassword = await user.isValidPassword(req.body.oldPassword);
+
+  if(!isCorrectOldPassword){
+    return next(new CustomError("Invalid old password",400))
+  }
+
+  user.password = req.body.password;
+
+  await user.save()
+
+  cookieToken(user,res)
 })
