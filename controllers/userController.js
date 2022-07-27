@@ -11,6 +11,7 @@ const crypto = require('crypto');
 
 
 
+
 exports.signup = BigPromise(async (req, res, next) => {
     //let result;
     console.log(req.body);
@@ -179,4 +180,62 @@ exports.changePassword = BigPromise(async (req,res,next) => {
   await user.save()
 
   cookieToken(user,res)
+})
+
+exports.updateUserDetails = BigPromise( async (req,res,next) => {
+
+  // check for email and name in the body
+  const {name,email} = req.body;
+
+  if(!name || !email){
+    return next(new CustomError("Email and Name are required!",400));
+  }
+
+  const newData = {
+    name:req.body.name,
+    email:req.body.email
+  }
+
+  // user is updating photo aswell
+  if(req.files){
+    const user = await User.findById(req.user.id);
+
+    const imageId = user.photo.id;
+
+    // delete photo on cloudinary
+    const resp = await cloudinary.v2.uploader.destroy(imageId);
+
+    // upload a new photo 
+    let file = req.files.photo
+    const result = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+      folder: "users",
+      width: 150,
+      crop: "scale",
+    });
+
+    newData.photo = {
+      id:result.public_id,
+      secure_url: result.secure_url,
+    } 
+  }
+
+  const user = await User.findByIdAndUpdate(req.user.id,newData,{
+    new:true,
+    runValidators:true,
+    useFindAndModify:false
+  })
+
+  res.status(200).json({
+    success:true,
+    user
+  })
+})
+
+exports.adminGetAllUsers = BigPromise(async (req,res,next) => {
+  const users = await User.find();
+
+  res.status(200).json({
+    success:true,
+    users
+  })
 })
