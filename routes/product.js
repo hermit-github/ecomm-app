@@ -4,6 +4,9 @@ const { isLoggedIn, customRole } = require('../middlewares/user');
 const { addProduct,
     getAllProducts,
     getOneProduct,
+    addReview,
+    deleteReview,
+    getReviewsForOneProduct,
     adminGetAllProducts,
     adminUpdateOneProduct,
     adminDeleteOneProduct,
@@ -14,6 +17,10 @@ const { addProduct,
 router.route('/testProduct').get(testProductRoute);
 router.route('/products').get(getAllProducts);
 router.route('/product/:id').get(getOneProduct);
+router.route('/review')
+    .delete(isLoggedIn,deleteReview)
+    .put(isLoggedIn,addReview)
+router.route('/reviews').get(isLoggedIn,getReviewsForOneProduct)
 
 
 // admin routes

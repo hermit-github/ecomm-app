@@ -3,7 +3,8 @@ const BigPromise = require("../middlewares/bigPromise");
 const CustomeError = require("../utils/customError")
 const fileUpload = require('express-fileupload');
 const cloudinary = require('cloudinary');
-const WhereClause = require('../utils/whereClause')
+const WhereClause = require('../utils/whereClause');
+const CustomError = require('../utils/customError');
 
 
 
@@ -87,6 +88,97 @@ exports.getOneProduct = BigPromise(async (req,res,next) => {
     })
 })
 
+exports.addReview = BigPromise( async (req,res,next) => {
+    const {rating,comment,productId} = req.body;
+
+    const review = {
+        user: req.user._id,
+        name: req.user.name,
+        rating: Number(rating),
+        comment
+    }
+
+    const product = await Product.findById(productId);
+
+    if(!product){
+        return next( new CustomError("Product doesn't exist!",401));
+    }
+
+    const hasAlreadyReviewed = product.reviews.find(
+         review => review.user.toString() === req.user._id
+         )
+
+    if(hasAlreadyReviewed){
+        product.reviews.forEach( review => {
+            if(review.user.toString() === req.user._id){
+                review.comment = comment;
+                review.rating = rating;
+            }
+        })
+    } else {
+        product.reviews.push(review)
+        product.numberOfReviews = product.reviews.length;
+    }
+
+    // adjust average ratings
+    product.ratings = product.reviews.reduce((acc,item) => item.rating + acc,0)/product.reviews.length;
+
+    await product.save({validateBeforeSave:true})
+
+    res.status(200).json({
+        success:true
+    })
+
+})
+
+exports.deleteReview = BigPromise( async (req,res,next) => {
+    const {productId} = req.query;
+
+    const product = await Product.findById(productId);
+
+    if(!product){
+        return next( new CustomError("Product not found!",401));
+    }
+
+    const reviews = product.reviews.filter( review => review.user.toString() === req.user._id);
+
+    const numberOfReviews = reviews.length;
+
+    const ratings = reviews.reduce((acc,item) => item.rating + acc,0)/product.reviews.length;
+
+    // instead of save use update method cause there might be a lot of reviews
+    await Product.findByIdAndUpdate(productId,{
+        reviews,
+        ratings,
+        numberOfReviews
+    },{
+        new:true,
+        runValidators:true,
+        useFindAndModify:false
+    })
+
+    res.status(200).json({
+        success:true
+    })
+
+})
+
+exports.getReviewsForOneProduct = BigPromise( async (req,res,next) => {
+    const product = await Product.findById(req.query.id);
+
+    if(!product){
+        return next(new CustomError("Product doesn't exist",401))
+    }
+
+    res.status(200).json({
+        success:true,
+        product_name:product.name,
+        product_category:product.category,
+        product_brand:product.brand,
+        reviews:product.reviews
+    })
+})
+
 
 // admin only controllers
 exports.adminGetAllProducts = BigPromise( async (req,res,next) => {
@@ -131,7 +223,9 @@ exports.adminUpdateOneProduct = BigPromise(async (req,res,next) => {
         };
     }
 
-    req.body.photos = imagesArray;
+    if(imagesArray.length !== 0 ){
+        req.body.photos = imagesArray;
+    }
 
     product = await Product.findByIdAndUpdate(req.params.id,req.body,{
         new:true,
