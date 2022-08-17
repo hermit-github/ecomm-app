@@ -33,12 +33,16 @@ app.use(morgan('tiny'))
 const home = require('./routes/home');
 const users = require('./routes/users');
 const products = require('./routes/product')
+const payment = require('./routes/payment')
+const order = require("./routes/order")
 
 
 // router middleware
 app.use('/api/v1',home)
 app.use('/api/v1',users)
 app.use('/api/v1',products)
+app.use('/api/v1',payment)
+app.use('/api/v1',order)
 
 app.get('/signuptest',(req,res) => {
     res.render('signuptest')
